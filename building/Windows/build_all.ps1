@@ -149,40 +149,51 @@ New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 # ============================================
 Write-Host "Creating Windows junctions for symlinks..." -ForegroundColor Yellow
 
+# Function to safely create junction from symlink placeholder
+function New-JunctionFromSymlink {
+    param([string]$SymlinkPath, [string]$TargetPath, [string]$Description)
+
+    # Check if it's a symlink placeholder file (small file containing path)
+    if (Test-Path $SymlinkPath -PathType Leaf) {
+        $size = (Get-Item $SymlinkPath).Length
+        if ($size -lt 100) {
+            Write-Host "  Replacing symlink placeholder: $Description" -ForegroundColor Yellow
+            Remove-Item $SymlinkPath -Force
+            New-Item -ItemType Junction -Path $SymlinkPath -Target $TargetPath -Force | Out-Null
+            Write-Host "    Created junction: $Description" -ForegroundColor Green
+        } else {
+            Write-Warning "  $SymlinkPath is not a symlink placeholder (size: $size bytes)"
+        }
+    } elseif (-not (Test-Path $SymlinkPath -PathType Container)) {
+        # Doesn't exist yet - create junction
+        New-Item -ItemType Junction -Path $SymlinkPath -Target $TargetPath -Force | Out-Null
+        Write-Host "  Created junction: $Description" -ForegroundColor Green
+    } else {
+        Write-Host "  Junction already exists: $Description" -ForegroundColor DarkGray
+    }
+}
+
+# moonray/moonray submodule path
+$MoonraySubmodule = Join-Path $RepoRoot "moonray\moonray"
+
 # moonray/moonray/moonray -> lib
-$moonraySymlink = Join-Path $MoonraySource "moonray\moonray"
-if (Test-Path "$moonraySymlink" -PathType Leaf) {
-    Remove-Item "$moonraySymlink" -Force
-}
-if (-not (Test-Path "$moonraySymlink" -PathType Container)) {
-    $target = Join-Path $RepoRoot "moonray\moonray\lib"
-    New-Item -ItemType Junction -Path "$moonraySymlink" -Target $target -Force | Out-Null
-    Write-Host "  Created junction: moonray/moonray/moonray -> lib"
-}
+$moonrayLibTarget = Join-Path $MoonraySubmodule "lib"
+New-JunctionFromSymlink -SymlinkPath (Join-Path $MoonraySubmodule "moonray") `
+                        -TargetPath $moonrayLibTarget `
+                        -Description "moonray/moonray/moonray -> lib"
 
 # moonray/moonray/include/moonray -> ../lib
-$includeSymlink = Join-Path $MoonraySource "moonray\include\moonray"
-if (Test-Path "$includeSymlink" -PathType Leaf) {
-    Remove-Item "$includeSymlink" -Force
-}
-if (-not (Test-Path "$includeSymlink" -PathType Container)) {
-    $target = Join-Path $RepoRoot "moonray\moonray\lib"
-    New-Item -ItemType Junction -Path "$includeSymlink" -Target $target -Force | Out-Null
-    Write-Host "  Created junction: moonray/moonray/include/moonray -> lib"
-}
+New-JunctionFromSymlink -SymlinkPath (Join-Path $MoonraySubmodule "include\moonray") `
+                        -TargetPath $moonrayLibTarget `
+                        -Description "moonray/moonray/include/moonray -> lib"
 
 # moonshine/include/moonshine -> ../lib
-$moonshineSymlink = Join-Path $MoonshineSource "include\moonshine"
-if (Test-Path "$moonshineSymlink" -PathType Leaf) {
-    Remove-Item "$moonshineSymlink" -Force
-}
-if (-not (Test-Path "$moonshineSymlink" -PathType Container)) {
-    $target = Join-Path $MoonshineSource "lib"
-    New-Item -ItemType Junction -Path "$moonshineSymlink" -Target $target -Force | Out-Null
-    Write-Host "  Created junction: moonshine/include/moonshine -> lib"
-}
+$moonshineLibTarget = Join-Path $MoonshineSource "lib"
+New-JunctionFromSymlink -SymlinkPath (Join-Path $MoonshineSource "include\moonshine") `
+                        -TargetPath $moonshineLibTarget `
+                        -Description "moonshine/include/moonshine -> lib"
 
-Write-Host "Junctions created" -ForegroundColor Green
+Write-Host "Junctions setup complete" -ForegroundColor Green
 
 # ============================================
 # Build scene_rdl2

@@ -145,6 +145,46 @@ New-Item -ItemType Directory -Force -Path $BuildMoonray | Out-Null
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
 # ============================================
+# Create Windows Junctions (Git symlinks don't work on Windows)
+# ============================================
+Write-Host "Creating Windows junctions for symlinks..." -ForegroundColor Yellow
+
+# moonray/moonray/moonray -> lib
+$moonraySymlink = Join-Path $MoonraySource "moonray\moonray"
+if (Test-Path "$moonraySymlink" -PathType Leaf) {
+    Remove-Item "$moonraySymlink" -Force
+}
+if (-not (Test-Path "$moonraySymlink" -PathType Container)) {
+    $target = Join-Path $RepoRoot "moonray\moonray\lib"
+    New-Item -ItemType Junction -Path "$moonraySymlink" -Target $target -Force | Out-Null
+    Write-Host "  Created junction: moonray/moonray/moonray -> lib"
+}
+
+# moonray/moonray/include/moonray -> ../lib
+$includeSymlink = Join-Path $MoonraySource "moonray\include\moonray"
+if (Test-Path "$includeSymlink" -PathType Leaf) {
+    Remove-Item "$includeSymlink" -Force
+}
+if (-not (Test-Path "$includeSymlink" -PathType Container)) {
+    $target = Join-Path $RepoRoot "moonray\moonray\lib"
+    New-Item -ItemType Junction -Path "$includeSymlink" -Target $target -Force | Out-Null
+    Write-Host "  Created junction: moonray/moonray/include/moonray -> lib"
+}
+
+# moonshine/include/moonshine -> ../lib
+$moonshineSymlink = Join-Path $MoonshineSource "include\moonshine"
+if (Test-Path "$moonshineSymlink" -PathType Leaf) {
+    Remove-Item "$moonshineSymlink" -Force
+}
+if (-not (Test-Path "$moonshineSymlink" -PathType Container)) {
+    $target = Join-Path $MoonshineSource "lib"
+    New-Item -ItemType Junction -Path "$moonshineSymlink" -Target $target -Force | Out-Null
+    Write-Host "  Created junction: moonshine/include/moonshine -> lib"
+}
+
+Write-Host "Junctions created" -ForegroundColor Green
+
+# ============================================
 # Build scene_rdl2
 # ============================================
 Write-Host "=============================================" -ForegroundColor Cyan

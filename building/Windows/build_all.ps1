@@ -216,6 +216,7 @@ try {
         "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
         "-DISPC_COMPILER=$IspcExeForCmake" `
         "-DMOONRAY_USE_CUDA=OFF" `
+        "-DMOONRAY_USE_OPTIX=OFF" `
         "-DBUILD_QT_APPS=OFF" `
         "-DABI_VERSION=0"
 

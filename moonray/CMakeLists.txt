@@ -1,13 +1,33 @@
 # Copyright 2023-2024 DreamWorks Animation LLC
 # SPDX-License-Identifier: Apache-2.0
 
-add_subdirectory(hydra)
-add_subdirectory(mcrt_denoise)
+# Options for optional components
+option(BUILD_HYDRA "Build Hydra plugin (requires USD/pxr)" OFF)
+option(BUILD_MOONSHINE_USD "Build moonshine_usd (requires USD/pxr)" OFF)
+option(BUILD_ARRAS "Build Arras distributed rendering support" OFF)
+option(BUILD_DENOISE "Build denoiser (requires OpenImageDenoise)" OFF)
+
+if(BUILD_HYDRA)
+    add_subdirectory(hydra)
+endif()
+
+if(BUILD_DENOISE)
+    add_subdirectory(mcrt_denoise)
+endif()
+
 add_subdirectory(moonray)
-add_subdirectory(moonray_arras)
+
+if(BUILD_ARRAS)
+    add_subdirectory(moonray_arras)
+endif()
+
 add_subdirectory(moonray_dcc_plugins)
 add_subdirectory(moonshine)
-add_subdirectory(moonshine_usd)
+
+if(BUILD_MOONSHINE_USD)
+    add_subdirectory(moonshine_usd)
+endif()
+
 add_subdirectory(render_profile_viewer)
 add_subdirectory(scene_rdl2)
 

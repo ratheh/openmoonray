@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     This script builds OpenMoonRay from source on Windows.
-    It builds scene_rdl2 first, then moonshine, then moonray with all DSOs.
+    It builds scene_rdl2 first, then moonray, then moonshine with all DSOs.
 
 .PARAMETER Clean
     Clean build directories before building
@@ -197,43 +197,6 @@ finally {
 }
 
 # ============================================
-# Build moonshine
-# ============================================
-Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host "Building moonshine" -ForegroundColor Cyan
-Write-Host "=============================================" -ForegroundColor Cyan
-
-Push-Location $BuildMoonshine
-try {
-    Write-Host "Configuring moonshine..." -ForegroundColor Yellow
-
-    $IspcExeForCmake = $IspcExe.Replace('\', '/')
-
-    & cmake -S $MoonshineSource -B . -G "Visual Studio 17 2022" -A x64 `
-        "-DCMAKE_MODULE_PATH=$CmakeModulesPath" `
-        "-DCMAKE_PREFIX_PATH=$InstallDir" `
-        "-DCMAKE_INSTALL_PREFIX=$InstallDir" `
-        "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        "-DISPC_COMPILER=$IspcExeForCmake" `
-        "-DABI_VERSION=0"
-
-    if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed for moonshine" }
-
-    Write-Host "Building moonshine..." -ForegroundColor Yellow
-    cmake --build . --config Release --parallel
-    if ($LASTEXITCODE -ne 0) { throw "Build failed for moonshine" }
-
-    Write-Host "Installing moonshine..." -ForegroundColor Yellow
-    cmake --install . --config Release
-    if ($LASTEXITCODE -ne 0) { throw "Install failed for moonshine" }
-
-    Write-Host "moonshine build complete!" -ForegroundColor Green
-}
-finally {
-    Pop-Location
-}
-
-# ============================================
 # Build moonray
 # ============================================
 Write-Host "=============================================" -ForegroundColor Cyan
@@ -268,6 +231,43 @@ try {
     }
 
     Write-Host "moonray build complete!" -ForegroundColor Green
+}
+finally {
+    Pop-Location
+}
+
+# ============================================
+# Build moonshine
+# ============================================
+Write-Host "=============================================" -ForegroundColor Cyan
+Write-Host "Building moonshine" -ForegroundColor Cyan
+Write-Host "=============================================" -ForegroundColor Cyan
+
+Push-Location $BuildMoonshine
+try {
+    Write-Host "Configuring moonshine..." -ForegroundColor Yellow
+
+    $IspcExeForCmake = $IspcExe.Replace('\', '/')
+
+    & cmake -S $MoonshineSource -B . -G "Visual Studio 17 2022" -A x64 `
+        "-DCMAKE_MODULE_PATH=$CmakeModulesPath" `
+        "-DCMAKE_PREFIX_PATH=$InstallDir" `
+        "-DCMAKE_INSTALL_PREFIX=$InstallDir" `
+        "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+        "-DISPC_COMPILER=$IspcExeForCmake" `
+        "-DABI_VERSION=0"
+
+    if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed for moonshine" }
+
+    Write-Host "Building moonshine..." -ForegroundColor Yellow
+    cmake --build . --config Release --parallel
+    if ($LASTEXITCODE -ne 0) { throw "Build failed for moonshine" }
+
+    Write-Host "Installing moonshine..." -ForegroundColor Yellow
+    cmake --install . --config Release
+    if ($LASTEXITCODE -ne 0) { throw "Install failed for moonshine" }
+
+    Write-Host "moonshine build complete!" -ForegroundColor Green
 }
 finally {
     Pop-Location

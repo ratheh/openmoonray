@@ -57,7 +57,7 @@
 [submodule "cmake_modules"]
 	path = cmake_modules
 	url = ../cmake_modules
-	branch = main
+	branch = windows
 [submodule "moonray/hydra/moonray_sdr_plugins"]
 	path = moonray/hydra/moonray_sdr_plugins
 	url = ../moonray_sdr_plugins

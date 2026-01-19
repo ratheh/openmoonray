@@ -278,9 +278,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Build failed for moonray" }
 
     Write-Host "Installing moonray..." -ForegroundColor Yellow
-    cmake --install . --config Release 2>&1 | ForEach-Object {
-        if ($_ -notmatch "VdbGeometry|OpenVdbMap") { Write-Host $_ }
-    }
+    cmake --install . --config Release
+    if ($LASTEXITCODE -ne 0) { throw "Install failed for moonray" }
 
     Write-Host "moonray build complete!" -ForegroundColor Green
 }
@@ -347,15 +346,84 @@ if (Test-Path $BuildRdl2dsoDir) {
     Write-Host "Copied $dsoCount DSO files" -ForegroundColor Green
 }
 
+# ============================================
+# Copy vcpkg runtime DLLs to install/bin
+# ============================================
+Write-Host "=============================================" -ForegroundColor Cyan
+Write-Host "Copying vcpkg DLLs" -ForegroundColor Cyan
+Write-Host "=============================================" -ForegroundColor Cyan
+
+$InstallBinDir = Join-Path $InstallDir "bin"
+$VcpkgBinDir = Join-Path $env:VCPKG_ROOT "installed\x64-windows\bin"
+
+if (Test-Path $VcpkgBinDir) {
+    # Required runtime DLLs from vcpkg
+    $requiredDlls = @(
+        "tbb12.dll",
+        "embree4.dll",
+        "blosc.dll",
+        "boost_*.dll",
+        "bz2.dll",
+        "charset-1.dll",
+        "deflate.dll",
+        "freetype.dll",
+        "gif.dll",
+        "Iex*.dll",
+        "IlmThread*.dll",
+        "Imath*.dll",
+        "jpeg*.dll",
+        "jsoncpp.dll",
+        "lcms2.dll",
+        "libcurl.dll",
+        "libpng16.dll",
+        "libsharpyuv.dll",
+        "libwebp*.dll",
+        "log4cplus.dll",
+        "lz4.dll",
+        "lzma.dll",
+        "OpenColorIO*.dll",
+        "OpenEXR*.dll",
+        "OpenImageIO*.dll",
+        "openvdb.dll",
+        "pugixml.dll",
+        "raw.dll",
+        "snappy.dll",
+        "tiff.dll",
+        "turbojpeg.dll",
+        "yaml-cpp.dll",
+        "zlib1.dll",
+        "zstd.dll",
+        "lua*.dll",
+        "iconv-2.dll",
+        "intl-8.dll",
+        "liblzma.dll",
+        "fmt.dll"
+    )
+
+    $dllsCopied = 0
+    foreach ($pattern in $requiredDlls) {
+        $dlls = Get-ChildItem (Join-Path $VcpkgBinDir $pattern) -ErrorAction SilentlyContinue
+        foreach ($dll in $dlls) {
+            Copy-Item $dll.FullName $InstallBinDir -Force
+            $dllsCopied++
+        }
+    }
+    Write-Host "Copied $dllsCopied vcpkg DLLs to install/bin" -ForegroundColor Green
+} else {
+    Write-Warning "vcpkg bin directory not found: $VcpkgBinDir"
+}
+
 Write-Host ""
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host "BUILD COMPLETE!" -ForegroundColor Green
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Installation directory: $InstallDir" -ForegroundColor Yellow
+Write-Host "  bin/     - moonray.exe and all required DLLs"
+Write-Host "  rdl2dso/ - DSO plugin files"
 Write-Host ""
 Write-Host "To test, run:" -ForegroundColor Yellow
-Write-Host '  $env:PATH = "' + $InstallDir + '\bin;$env:VCPKG_ROOT\installed\x64-windows\bin;$env:PATH"'
+Write-Host '  $env:PATH = "' + $InstallDir + '\bin;$env:PATH"'
 Write-Host '  $env:RDL2_DSO_PATH = "' + $InstallDir + '\rdl2dso"'
 Write-Host '  moonray.exe --help'
 Write-Host ""

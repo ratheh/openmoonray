@@ -278,14 +278,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Build failed for moonray" }
 
     Write-Host "Installing moonray..." -ForegroundColor Yellow
-    # Note: cmake install may report errors for VdbGeometry DSO (OpenVDB C++17 issue)
-    # but this is non-blocking - the critical binaries are installed first.
-    # DSOs are copied separately in the next step from build/rdl2dso.
-    $installResult = cmake --install . --config Release 2>&1
-    $installResult | ForEach-Object { Write-Host $_ }
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "cmake install had errors (likely VdbGeometry) - continuing with DSO copy"
-    }
+    cmake --install . --config Release
+    if ($LASTEXITCODE -ne 0) { throw "Install failed for moonray" }
 
     Write-Host "moonray build complete!" -ForegroundColor Green
 }

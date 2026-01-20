@@ -32,6 +32,7 @@ $ErrorActionPreference = "Stop"
 # Repo root is two levels up from this script
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $SceneRdl2Source = Join-Path $RepoRoot "moonray\scene_rdl2"
+$McrtDenoiseSource = Join-Path $RepoRoot "moonray\mcrt_denoise"
 $MoonshineSource = Join-Path $RepoRoot "moonray\moonshine"
 $MoonraySource = Join-Path $RepoRoot "moonray"
 
@@ -42,6 +43,7 @@ $CmakeModulesRoot = (Join-Path $RepoRoot "cmake_modules").Replace('\', '/')
 # Build/install directories relative to repo root's parent
 $WorkspaceRoot = Split-Path -Parent $RepoRoot
 $BuildSceneRdl2 = Join-Path $WorkspaceRoot "build_scene_rdl2"
+$BuildMcrtDenoise = Join-Path $WorkspaceRoot "build_mcrt_denoise"
 $BuildMoonshine = Join-Path $WorkspaceRoot "build_moonshine"
 $BuildMoonray = Join-Path $WorkspaceRoot "build_moonray"
 $InstallDir = Join-Path $WorkspaceRoot "install"
@@ -111,7 +113,7 @@ $env:CMAKE_MODULES_ROOT = $CmakeModulesRoot
 
 # Check for required vcpkg packages
 Write-Host "Checking vcpkg packages..." -ForegroundColor Yellow
-$requiredPackages = @("tbb", "openimageio", "log4cplus", "jsoncpp", "lua", "embree")
+$requiredPackages = @("tbb", "openimageio", "log4cplus", "jsoncpp", "lua", "embree", "openimagedenoise")
 $missingPackages = @()
 foreach ($pkg in $requiredPackages) {
     $pkgDir = Join-Path $env:VCPKG_ROOT "installed\x64-windows\share\$pkg"
@@ -248,6 +250,15 @@ finally {
 }
 
 # ============================================
+# Build mcrt_denoise (SKIPPED - requires Intel OpenImageDenoise)
+# ============================================
+Write-Host "=============================================" -ForegroundColor Cyan
+Write-Host "Skipping mcrt_denoise (requires Intel OpenImageDenoise)" -ForegroundColor Yellow
+Write-Host "=============================================" -ForegroundColor Cyan
+# NOTE: McrtDenoise is made optional in MoonrayConfig.cmake
+# To enable denoising support, install Intel OIDN and uncomment this section
+
+# ============================================
 # Build moonray
 # ============================================
 Write-Host "=============================================" -ForegroundColor Cyan
@@ -306,6 +317,7 @@ try {
         "-DCMAKE_INSTALL_PREFIX=$InstallDir" `
         "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
         "-DISPC_COMPILER=$IspcExeForCmake" `
+        "-DMOONRAY_USE_OPTIX=OFF" `
         "-DABI_VERSION=0"
 
     if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed for moonshine" }

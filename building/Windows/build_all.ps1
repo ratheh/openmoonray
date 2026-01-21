@@ -284,6 +284,16 @@ try {
 
     if ($LASTEXITCODE -ne 0) { throw "CMake configuration failed for moonray" }
 
+    # Workaround for Bison race condition on Windows parallel builds
+    # Copy pre-generated AovMatParser.cc to build directory before build starts
+    $BisonOutputDir = Join-Path $BuildMoonray "moonray\lib\rendering\pbr\core"
+    $BisonSourceFile = Join-Path $MoonraySubmodule "lib\rendering\pbr\core\AovMatParser.cc"
+    if (Test-Path $BisonSourceFile) {
+        New-Item -ItemType Directory -Force -Path $BisonOutputDir | Out-Null
+        Copy-Item $BisonSourceFile $BisonOutputDir -Force
+        Write-Host "  Copied pre-generated AovMatParser.cc (Bison race condition workaround)" -ForegroundColor Yellow
+    }
+
     Write-Host "Building moonray..." -ForegroundColor Yellow
     cmake --build . --config Release --parallel
     if ($LASTEXITCODE -ne 0) { throw "Build failed for moonray" }

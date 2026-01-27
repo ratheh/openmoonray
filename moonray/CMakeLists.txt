@@ -6,6 +6,7 @@ option(BUILD_HYDRA "Build Hydra plugin (requires USD/pxr)" OFF)
 option(BUILD_MOONSHINE_USD "Build moonshine_usd (requires USD/pxr)" OFF)
 option(BUILD_ARRAS "Build Arras distributed rendering support" OFF)
 option(BUILD_DENOISE "Build denoiser (requires OpenImageDenoise)" OFF)
+option(BUILD_DCC_PLUGINS "Build DCC plugins (Houdini)" OFF)
 
 if(BUILD_HYDRA)
     add_subdirectory(hydra)
@@ -21,7 +22,9 @@ if(BUILD_ARRAS)
     add_subdirectory(moonray_arras)
 endif()
 
-add_subdirectory(moonray_dcc_plugins)
+if(BUILD_DCC_PLUGINS)
+    add_subdirectory(moonray_dcc_plugins)
+endif()
 add_subdirectory(moonshine)
 
 if(BUILD_MOONSHINE_USD)

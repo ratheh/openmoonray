@@ -127,6 +127,39 @@ if ($missingPackages.Count -gt 0) {
     Write-Warning "Run: vcpkg install $($missingPackages -join ':x64-windows '):x64-windows"
 }
 
+# xxd - REQUIRED (used by moonray pbr to embed binary data)
+# Ships with vim in MSYS2 (Git for Windows includes MSYS2)
+$XxdExe = Get-Command "xxd.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+if (-not $XxdExe) {
+    Write-Host "xxd not found - installing via pacman (MSYS2)..." -ForegroundColor Yellow
+    $pacman = Get-Command "pacman.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+    if ($pacman) {
+        & $pacman -S --noconfirm --needed vim
+        if ($LASTEXITCODE -ne 0) { throw "Failed to install vim (provides xxd) via pacman" }
+        # Verify xxd is now available
+        $XxdExe = Get-Command "xxd.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+        if (-not $XxdExe) {
+            throw @"
+xxd was installed via pacman but is not in PATH.
+Add the MSYS2 usr/bin directory to your PATH (e.g., C:\msys64\usr\bin)
+"@
+        }
+        Write-Host "  xxd installed successfully: $XxdExe" -ForegroundColor Green
+    } else {
+        throw @"
+xxd not found (required by moonray pbr build).
+
+To fix, install vim via MSYS2 which provides xxd:
+  pacman -S vim
+
+If pacman is not in PATH, add your MSYS2 usr/bin directory
+(e.g., C:\msys64\usr\bin or C:\Program Files\Git\usr\bin) to PATH.
+"@
+    }
+} else {
+    Write-Host "  xxd found: $XxdExe" -ForegroundColor DarkGray
+}
+
 Write-Host "Prerequisites OK" -ForegroundColor Green
 Write-Host ""
 

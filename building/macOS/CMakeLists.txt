@@ -42,7 +42,7 @@ ExternalProject_Add(Boost
     URL https://sourceforge.net/projects/boost/files/boost/1.78.0/boost_1_78_0.tar.gz
     UPDATE_COMMAND ./bootstrap.sh --prefix=${InstallRoot}  --with-toolset=clang linkflags="-arch ${BOOST_ARCH}"
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ./b2 install ${JOBS_ARG} --user-config=${THIS_DIR}/user-config.jam  --with_python variant=release link=shared threading=multi define=BOOST_UNORDERED_HAVE_PIECEWISE_CONSTRUCT=0
+    BUILD_COMMAND ./b2 install ${JOBS_ARG} -sNO_ZSTD=1 -sNO_LZMA=1 --user-config=${THIS_DIR}/user-config.jam  --with_python variant=release link=shared threading=multi define=BOOST_UNORDERED_HAVE_PIECEWISE_CONSTRUCT=0
     BUILD_IN_SOURCE 1
     INSTALL_COMMAND ""
     DEPENDS ${CHAIN}

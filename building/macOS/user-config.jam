@@ -3,4 +3,4 @@ using python : 3.9
   : "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Headers"
   : "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib"
   ;
-using clang : : : <compileflags>-"arch arm64" <linkflags>"-arch arm64" ;
+using clang : : : <compileflags>"-arch arm64" <cxxflags>"-std=c++17" <cxxflags>"-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION" <cxxflags>"-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES" <cxxflags>"-Wno-enum-constexpr-conversion" <linkflags>"-arch arm64" ;

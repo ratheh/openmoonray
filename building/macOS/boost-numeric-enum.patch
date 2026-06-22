@@ -1,0 +1,44 @@
+# Boost 1.78 numeric mixture-enum fixed-underlying-type fix for clang 21 (macOS 26 build).
+# Gives the enums a fixed underlying type so boost MPL integral_c<enum,(enum)-1> is a valid
+# constant expression (clang 21 otherwise errors, non-suppressibly). Apply from the boost
+# source root, e.g. as a PATCH_COMMAND in building/macOS/CMakeLists.txt's Boost ExternalProject:
+#   patch -p1 -N < boost-numeric-enum.patch
+# NOTE: upstream OpenMoonRay uses an alternative (a -Wenum-constexpr-conversion pragma in
+# boost/mpl/aux_/integral_wrapper.hpp via its Boost.patch); see BUILDING_MACOS.md.
+#
+diff -ur a/boost/numeric/conversion/int_float_mixture_enum.hpp b/boost/numeric/conversion/int_float_mixture_enum.hpp
+--- a/boost/numeric/conversion/int_float_mixture_enum.hpp	2026-06-22 11:33:16
++++ b/boost/numeric/conversion/int_float_mixture_enum.hpp	2026-06-22 11:33:16
+@@ -12,7 +12,7 @@
+ 
+ namespace boost { namespace numeric
+ {
+-  enum int_float_mixture_enum
++  enum int_float_mixture_enum : int
+   {
+      integral_to_integral
+     ,integral_to_float
+diff -ur a/boost/numeric/conversion/sign_mixture_enum.hpp b/boost/numeric/conversion/sign_mixture_enum.hpp
+--- a/boost/numeric/conversion/sign_mixture_enum.hpp	2026-06-22 11:33:16
++++ b/boost/numeric/conversion/sign_mixture_enum.hpp	2026-06-22 11:33:16
+@@ -12,7 +12,7 @@
+ 
+ namespace boost { namespace numeric
+ {
+-  enum sign_mixture_enum
++  enum sign_mixture_enum : int
+   {
+      unsigned_to_unsigned
+     ,signed_to_signed
+diff -ur a/boost/numeric/conversion/udt_builtin_mixture_enum.hpp b/boost/numeric/conversion/udt_builtin_mixture_enum.hpp
+--- a/boost/numeric/conversion/udt_builtin_mixture_enum.hpp	2026-06-22 11:33:16
++++ b/boost/numeric/conversion/udt_builtin_mixture_enum.hpp	2026-06-22 11:33:16
+@@ -12,7 +12,7 @@
+ 
+ namespace boost { namespace numeric
+ {
+-  enum udt_builtin_mixture_enum
++  enum udt_builtin_mixture_enum : int
+   {
+      builtin_to_builtin
+     ,builtin_to_udt
